@@ -69,7 +69,7 @@ class Env(object):
     observation_space = None
 
     # Override in ALL subclasses
-    def _step(self, action): raise NotImplementedError
+    def _step(self, action, ind): raise NotImplementedError
     def _reset(self): raise NotImplementedError
     def _render(self, mode='human', close=False): return
     def _seed(self, seed=None): return []
@@ -77,7 +77,7 @@ class Env(object):
     # Do not override
     _owns_render = True
 
-    def step(self, action):
+    def step(self, action, ind):
         """Run one timestep of the environment's dynamics. When end of
         episode is reached, you are responsible for calling `reset()`
         to reset this environment's state.
@@ -93,7 +93,7 @@ class Env(object):
             done (boolean): whether the episode has ended, in which case further step() calls will return undefined results
             info (dict): contains auxiliary diagnostic information (helpful for debugging, and sometimes learning)
         """
-        return self._step(action)
+        return self.env._step(action, ind)
 
     def reset(self):
         """Resets the state of the environment and returns an initial observation.
@@ -103,7 +103,7 @@ class Env(object):
         """
         return self._reset()
 
-    def render(self, mode='human', close=False):
+    def render(self, close=False, mode='human'):
         """Renders the environment.
 
         The set of supported modes varies per environment. (And some
@@ -276,8 +276,8 @@ class Wrapper(Env):
             else:
                 break
 
-    def _step(self, action):
-        return self.env.step(action)
+    def _step(self, action, ind):
+        return self.env.step(action, ind)
 
     def _reset(self, **kwargs):
         return self.env.reset(**kwargs)
@@ -311,8 +311,8 @@ class ObservationWrapper(Wrapper):
         observation = self.env.reset(**kwargs)
         return self._observation(observation)
 
-    def _step(self, action):
-        observation, reward, done, info = self.env.step(action)
+    def _step(self, action, ind):
+        observation, reward, done, info = self.env.step(action, ind)
         return self.observation(observation), reward, done, info
 
     def observation(self, observation):
@@ -322,8 +322,8 @@ class ObservationWrapper(Wrapper):
         raise NotImplementedError
 
 class RewardWrapper(Wrapper):
-    def _step(self, action):
-        observation, reward, done, info = self.env.step(action)
+    def _step(self, action, ind):
+        observation, reward, done, info = self.env.step(action, ind)
         return observation, self.reward(reward), done, info
 
     def reward(self, reward):
@@ -333,9 +333,9 @@ class RewardWrapper(Wrapper):
         raise NotImplementedError
 
 class ActionWrapper(Wrapper):
-    def _step(self, action):
+    def _step(self, action, ind):
         action = self.action(action)
-        return self.env.step(action)
+        return self.env.step(action, ind)
 
     def action(self, action):
         return self._action(action)

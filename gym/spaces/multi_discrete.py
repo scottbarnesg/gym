@@ -29,6 +29,10 @@ class MultiDiscrete(gym.Space):
         self.low = np.array([x[0] for x in array_of_param_array])
         self.high = np.array([x[1] for x in array_of_param_array])
         self.num_discrete_space = self.low.shape[0]
+        print('MultiDiscrete Stuff')
+        print(self.num_discrete_space)
+        print(self.low)
+        print(self.high)
 
     def sample(self):
         """ Returns a array with one sample from each discrete action space """
